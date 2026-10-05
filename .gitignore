@@ -42,5 +42,15 @@ example
 /ios
 /android
 
-.claude
-.agents
+# AI tooling. Personal to whoever is working on the repo, with one exception:
+# .claude/settings.json records which plugins the project expects, so it is
+# shared. Note `.claude/*` rather than `.claude/` — git will not look inside an
+# excluded directory, so the negation below would never match.
+.claude/*
+!.claude/settings.json
+.agents/
+
+# Lockfile for locally installed agent skills. The skills themselves are
+# ignored above, so pinning their hashes here would lock content the repo does
+# not carry.
+skills-lock.json

@@ -51,9 +51,9 @@ backend, no payment gateway. The person holding the phone is the landlord.
 
 ```bash
 npm run typecheck   # tsc --noEmit
-npm test            # pure domain logic, node:test + native type stripping
+npm test            # domain logic + contrast guard
 npm run db:generate   # after editing src/db/schema.ts
-npm run check:contrast # WCAG AA guard on the palette
+npm run check:contrast # contrast guard alone (also runs inside npm test)
 npm run web           # browser preview (mobile app; preview only)
 ```
 

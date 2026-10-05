@@ -1,56 +1,152 @@
-# Welcome to your Expo app 👋
+# Rent Khata
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Rent and electricity ledger for a landlord with one building. Replaces the
+paper khata: enter each unit's meter reading, the app works out the bill, you
+mark it paid and send it to the tenant on WhatsApp.
 
-## Get started
+Single user, offline, no login, no payment gateway — the person holding the
+phone is the owner.
 
-1. Install dependencies
+Expo SDK 57 · React Native 0.86 · TypeScript · NativeWind 4 · Drizzle + SQLite
 
-   ```bash
-   npm install
-   ```
+---
 
-2. Start the app
+## Running it
 
-   ```bash
-   npx expo start
-   ```
+**This is a mobile app.** It runs on iOS and Android. It also loads in a
+browser, but only as a preview — see the table below for what that does and
+does not show you.
 
-In the output, you'll find options to open the app in a
+| | What you get | What you need |
+|---|---|---|
+| **Browser** | Layout, colours, type, the building view, the whole data flow | Nothing. `npm run web` |
+| **Expo Go** (phone) | The real thing: glass, haptics, finger-sized targets, camera | The phone and this PC on the same Wi-Fi |
+| **Dev build** | Everything, including modules Expo Go lacks | `eas build`, or Android Studio / Xcode locally |
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+### Browser preview
 
 ```bash
-npm run reset-project
+npm install
+npm run web          # then open http://localhost:8081
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Honest limits:
 
-### Other setup steps
+- **No glass.** `GLASS_MODE` resolves to `solid`, so the header and tab bar are
+  flat. The frosted material only exists on a device.
+- **Data is in memory.** A reload starts over from the setup wizard. There is
+  no SQLite in the browser — see "Browser preview" in `AGENTS.md` for why.
+- Mouse hover can't tell you whether touch targets are big enough.
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+Good for iterating on layout and logic. Judge the look on a phone.
 
-## Learn more
+### On your phone with Expo Go
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+npx expo start       # scan the QR with the iPhone Camera app
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Install [Expo Go](https://expo.dev/go) first. Phone and PC must be on the same
+Wi-Fi. If Expo Go hangs on "Opening project", your computer is refusing the
+incoming connection — see [Troubleshooting](#troubleshooting).
 
-## Join the community
+Everything currently in the app runs inside Expo Go. No dev build needed yet.
 
-Join our community of developers creating universal apps.
+### Dev build
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Needed once OCR or database encryption land, since those ship native code Expo
+Go doesn't bundle.
+
+```bash
+npx expo run:android          # needs Android Studio + JDK
+npx eas build --profile development --platform ios    # no Mac required
+```
+
+On Windows you cannot build iOS locally. Use EAS, or a Mac.
+
+---
+
+## Commands
+
+```bash
+npm run web            # browser preview
+npx expo start         # dev server for Expo Go / devices
+npm run typecheck      # tsc --noEmit
+npm test               # domain logic + the WCAG contrast guard
+npm run check:contrast # just the contrast guard, on its own
+npm run lint
+npm run db:generate    # regenerate migrations after editing src/db/schema.ts
+```
+
+Run `typecheck` and `test` before calling anything done.
+
+---
+
+## Layout
+
+```
+src/
+  app/         routes (Expo Router). Layout and wiring only.
+  components/  presentational UI
+  hooks/       compose repositories into what one screen needs
+  domain/      pure rules: billing maths, status, naming. No I/O, fully tested.
+  lib/         money, periods, WhatsApp message building, meter photos
+  db/          storage: schema, repositories, migrations
+  theme/       colour, type, motion tokens
+```
+
+`src/domain/domain.test.ts` covers the billing arithmetic — rupee rounding,
+Indian digit grouping, month rollover, the overdue cutoff. It runs on plain
+Node with no test framework.
+
+**`AGENTS.md` is the contributor guide**: architecture, the storage seam, the
+legibility rules, and the traps that fail silently. Read it before changing
+anything in `src/db` or `src/theme`.
+
+---
+
+## Troubleshooting
+
+**Expo Go stuck on "Opening project"**
+
+Your firewall is blocking the incoming connection. The tell is that the
+terminal shows no `iOS Bundled` / `Android Bundled` line at all — the phone
+never reached Metro.
+
+Windows blocks inbound connections by default on every network profile. In an
+**Administrator** PowerShell:
+
+```powershell
+New-NetFirewallRule -DisplayName "Expo Metro 8081" -Direction Inbound -Protocol TCP -LocalPort 8081 -Action Allow -Profile Any
+```
+
+Paste that as a **single line** — a wrapped paste runs each fragment as its own
+command and fails confusingly.
+
+No admin rights (a managed work laptop, say)? `npx expo start --tunnel` routes
+around the firewall entirely, but sends your bundle through a third party's
+servers — check that's acceptable on your machine first.
+
+**Port 8081 already in use** — a previous Metro is still alive:
+
+```bash
+npx kill-port 8081
+```
+
+**Styles missing on a new component.** NativeWind only styles components in its
+registry; anything else silently ignores `className`. Register it in
+`src/theme/css-interop.ts`. This is the single most common surprise in this
+codebase — `AGENTS.md` explains it.
+
+**Blank screen with "Couldn't open your data"** — storage failed to open. The
+message underneath is the real cause.
+
+---
+
+## Status
+
+Working: setup wizard, building view, bill entry with auto-filled previous
+readings, paid/unpaid, WhatsApp sharing, meter photos.
+
+Not built yet: history ledger, editable settings, encrypted database with
+biometric lock, JSON backup, and OCR for meter readings.
