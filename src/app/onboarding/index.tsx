@@ -9,11 +9,13 @@ import { Text } from '@/components/text';
 import { createBuilding } from '@/db/repo/building';
 import type { FloorPlan } from '@/db/repo/types';
 import type { BuildingType } from '@/db/schema';
+import { unitLabelFor } from '@/domain/units';
 import { parseMoneyToPaise } from '@/lib/money';
 
 import {
   BuildingStep,
   FloorsStep,
+  NumbersStep,
   RatesStep,
   UnitsStep,
 } from '@/components/onboarding-steps';
@@ -26,8 +28,11 @@ import {
  * into step 3 with nothing filled in. Local state here is both simpler and
  * impossible to land in a half-built state.
  */
-const STEP_NAMES = ['Building', 'Floors', 'Units', 'Rates'] as const;
+const STEP_NAMES = ['Building', 'Floors', 'Units', 'Numbers', 'Rates'] as const;
 const LAST_STEP = STEP_NAMES.length - 1;
+
+/** Key for a unit's position in the structure, used for label overrides. */
+const slotKey = (floorIndex: number, position: number) => `${floorIndex}:${position}`;
 
 export default function Onboarding() {
   const [step, setStep] = useState(0);
@@ -46,8 +51,27 @@ export default function Onboarding() {
    */
   const [floorUnitCounts, setFloorUnitCounts] = useState<number[]>([2, 3, 3]);
 
+  /**
+   * Only the numbers the landlord actually changed, keyed by slot. Storing
+   * overrides rather than a full label array keeps `floorUnitCounts` the one
+   * source of truth for the structure — a parallel array would have to be kept
+   * in step with it, and eventually wouldn't be.
+   */
+  const [labelOverrides, setLabelOverrides] = useState<Record<string, string>>({});
+
   const totalUnits = floorUnitCounts.reduce((sum, count) => sum + count, 0);
   const canContinue = step === 0 ? name.trim().length > 0 : step === 2 ? totalUnits > 0 : true;
+
+  function labelFor(floorIndex: number, position: number): string {
+    return (
+      labelOverrides[slotKey(floorIndex, position)] ??
+      unitLabelFor(type, floorIndex + 1, position, floorUnitCounts.length)
+    );
+  }
+
+  function setLabel(floorIndex: number, position: number, value: string) {
+    setLabelOverrides((current) => ({ ...current, [slotKey(floorIndex, position)]: value }));
+  }
 
   function setFloorCount(nextCount: number) {
     setFloorUnitCounts((current) => {
@@ -68,9 +92,12 @@ export default function Onboarding() {
   async function finish() {
     setSaving(true);
     try {
-      const floors: FloorPlan[] = floorUnitCounts.map((unitCount, i) => ({
-        level: i + 1,
+      const floors: FloorPlan[] = floorUnitCounts.map((unitCount, floorIndex) => ({
+        level: floorIndex + 1,
         unitCount,
+        labels: Array.from({ length: unitCount }, (_, position) =>
+          labelFor(floorIndex, position)
+        ),
       }));
 
       await createBuilding({
@@ -117,6 +144,14 @@ export default function Onboarding() {
               />
             )}
             {step === 3 && (
+              <NumbersStep
+                type={type}
+                floorUnitCounts={floorUnitCounts}
+                labelFor={labelFor}
+                onLabel={setLabel}
+              />
+            )}
+            {step === 4 && (
               <RatesStep
                 rentText={rentText}
                 onRentText={setRentText}

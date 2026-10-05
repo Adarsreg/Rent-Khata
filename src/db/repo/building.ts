@@ -1,7 +1,7 @@
 import { and, asc, eq, isNull } from 'drizzle-orm';
 import * as Crypto from 'expo-crypto';
 
-import { unitLabelFor } from '@/domain/units';
+import { resolveUnitLabel } from '@/domain/unit-labels';
 
 import { getDb, notifyChange, nowMs } from '../client';
 import { building, floor, unit, type Building } from '../schema';
@@ -72,7 +72,7 @@ export async function createBuilding(input: NewBuilding): Promise<void> {
         await tx.insert(unit).values({
           id: Crypto.randomUUID(),
           floorId,
-          label: unitLabelFor(input.type, plan.level, position, input.floors.length),
+          label: resolveUnitLabel(plan, position, input.type, input.floors.length),
           position,
           createdAt: timestamp,
           updatedAt: timestamp,

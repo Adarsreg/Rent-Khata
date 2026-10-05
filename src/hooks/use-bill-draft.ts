@@ -17,6 +17,9 @@ import type { UnitBillData } from './use-unit-bill';
  * so they cannot drift apart.
  */
 export type BillDraft = {
+  /** The unit number shown on the door. Editable after setup. */
+  labelText: string;
+  setLabelText: (value: string) => void;
   tenantName: string;
   setTenantName: (value: string) => void;
   tenantPhone: string;
@@ -27,6 +30,9 @@ export type BillDraft = {
   setReadingText: (value: string) => void;
   openingText: string;
   setOpeningText: (value: string) => void;
+  /** Optional meter photo kept with the bill as proof of the reading. */
+  photoUri: string | null;
+  setPhotoUri: (uri: string | null) => void;
 
   /** True until the unit's one-time opening reading has been established. */
   needsOpeningReading: boolean;
@@ -45,11 +51,13 @@ export type BillDraft = {
 };
 
 export function useBillDraft(data: UnitBillData | null | undefined, period: Period): BillDraft {
+  const [labelText, setLabelText] = useState('');
   const [tenantName, setTenantName] = useState('');
   const [tenantPhone, setTenantPhone] = useState('');
   const [rentText, setRentText] = useState('');
   const [readingText, setReadingText] = useState('');
   const [openingText, setOpeningText] = useState('');
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [seeded, setSeeded] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -58,11 +66,13 @@ export function useBillDraft(data: UnitBillData | null | undefined, period: Peri
   useEffect(() => {
     if (!data || seeded) return;
 
+    setLabelText(data.unit.label);
     setTenantName(data.unit.tenantName ?? '');
     setTenantPhone(data.unit.tenantPhone ?? '');
     setRentText(String(Math.round(data.rentPaise / 100)));
     setReadingText(data.bill?.newReading != null ? String(data.bill.newReading) : '');
     setOpeningText(data.unit.openingReading != null ? String(data.unit.openingReading) : '');
+    setPhotoUri(data.bill?.photoUri ?? null);
     setSeeded(true);
   }, [data, seeded]);
 
@@ -81,6 +91,8 @@ export function useBillDraft(data: UnitBillData | null | undefined, period: Peri
     if (!data) return;
 
     await updateUnit(data.unit.id, {
+      // An empty box must not wipe the number — fall back to what it was.
+      label: labelText.trim() || data.unit.label,
       tenantName: tenantName.trim() || null,
       tenantPhone: tenantPhone.replace(/\D/g, '') || null,
       // The opening reading is written once and then never again; after that
@@ -97,7 +109,7 @@ export function useBillDraft(data: UnitBillData | null | undefined, period: Peri
       ratePaisePerUnit,
       prevReading: previousReading,
       newReading,
-      photoUri: data.bill?.photoUri ?? null,
+      photoUri,
     });
   }
 
@@ -111,6 +123,8 @@ export function useBillDraft(data: UnitBillData | null | undefined, period: Peri
   }
 
   return {
+    labelText,
+    setLabelText,
     tenantName,
     setTenantName,
     tenantPhone,
@@ -121,6 +135,8 @@ export function useBillDraft(data: UnitBillData | null | undefined, period: Peri
     setReadingText,
     openingText,
     setOpeningText,
+    photoUri,
+    setPhotoUri,
 
     needsOpeningReading,
     previousReading,

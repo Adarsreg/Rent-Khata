@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button, IconButton } from '@/components/button';
 import { Card, Divider } from '@/components/card';
+import { MeterPhotoField } from '@/components/meter-photo-field';
 import { StatusPill } from '@/components/status-pill';
 import { Text } from '@/components/text';
 import { TextField } from '@/components/text-field';
@@ -79,6 +80,12 @@ function TenantCard({ data, draft }: { data: UnitBillData; draft: BillDraft }) {
   return (
     <Card className="gap-4">
       <TextField
+        label={data.building.type === 'pg' ? 'Room number' : 'Unit number'}
+        value={draft.labelText}
+        onChangeText={draft.setLabelText}
+        autoCapitalize="characters"
+      />
+      <TextField
         label="Tenant name"
         placeholder="Not set"
         value={draft.tenantName}
@@ -150,6 +157,8 @@ function ChargesCard({ data, draft }: { data: UnitBillData; draft: BillDraft }) 
         numeric
         warning={draft.warning ? warningMessage(draft.warning) : null}
       />
+
+      <MeterPhotoField photoUri={draft.photoUri} onChange={draft.setPhotoUri} />
 
       <Divider />
 

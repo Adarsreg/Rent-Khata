@@ -70,6 +70,53 @@
   }
 }
 
+/*
+ * Web-only input chrome reset.
+ *
+ * React Native Web renders TextInput as a real <input>, so the browser draws
+ * its own focus ring and its own autofill tint over our styling — on Windows
+ * Chrome that reads as a yellow box. `<TextField>` already shows focus by
+ * turning its border brand-violet, which is the signal we want, so the UA one
+ * is pure noise.
+ *
+ * Focus is still clearly visible: this removes the duplicate ring, it does not
+ * remove the focus indicator.
+ */
+input,
+textarea,
+select {
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: transparent;
+}
+
+input:focus,
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible {
+  outline: none !important;
+}
+
+/* Chrome paints autofilled fields yellow and ignores background-color; an
+   inset shadow the size of the field is the only reliable override. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+  -webkit-text-fill-color: rgb(var(--c-text)) !important;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+/* Spinner arrows on number inputs: we use number-pad keyboards, not steppers. */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 /* Web-only font stacks (harmless on native). */
 :root {
   --font-display:

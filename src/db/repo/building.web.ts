@@ -1,6 +1,6 @@
 import * as Crypto from 'expo-crypto';
 
-import { unitLabelFor } from '@/domain/units';
+import { resolveUnitLabel } from '@/domain/unit-labels';
 
 import { notifyChange, nowMs } from '../client';
 import { clone, liveRows, tables } from '../preview/store';
@@ -57,7 +57,7 @@ export async function createBuilding(input: NewBuilding): Promise<void> {
       tables.units.push({
         id: Crypto.randomUUID(),
         floorId,
-        label: unitLabelFor(input.type, plan.level, position, input.floors.length),
+        label: resolveUnitLabel(plan, position, input.type, input.floors.length),
         position,
         tenantName: null,
         tenantPhone: null,

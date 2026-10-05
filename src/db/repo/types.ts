@@ -10,11 +10,17 @@ import type { Period } from '@/lib/period';
  * form a cycle.
  */
 
-/** How many units sit on one floor, as collected by the setup wizard. */
+/** One floor's worth of units, as collected by the setup wizard. */
 export type FloorPlan = {
   /** 1-based, ground floor first. */
   level: number;
   unitCount: number;
+  /**
+   * What to call each unit, in position order. Entries may be missing or
+   * blank, in which case the generated name from `unitLabelFor` is used — the
+   * wizard pre-fills these, so most landlords never type one.
+   */
+  labels?: (string | undefined)[];
 };
 
 export type NewBuilding = {

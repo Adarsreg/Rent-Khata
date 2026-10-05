@@ -148,6 +148,52 @@ export function UnitsStep({
   );
 }
 
+export function NumbersStep({
+  type,
+  floorUnitCounts,
+  labelFor,
+  onLabel,
+}: {
+  type: BuildingType;
+  floorUnitCounts: number[];
+  /** The name a unit currently has, whether typed or generated. */
+  labelFor: (floorIndex: number, position: number) => string;
+  onLabel: (floorIndex: number, position: number, value: string) => void;
+}) {
+  const noun = type === 'pg' ? 'room' : 'unit';
+
+  return (
+    <>
+      <Heading
+        title={`Check the ${noun} numbers`}
+        blurb={`We filled these in for you. Change any that don't match the ${noun} numbers on your doors.`}
+      />
+
+      {floorUnitCounts.map((count, floorIndex) => (
+        <Card key={floorIndex} className="gap-3">
+          <Text variant="label" tone="secondary">
+            Floor {floorIndex + 1}
+          </Text>
+
+          <View className="flex-row flex-wrap gap-2">
+            {Array.from({ length: count }, (_, position) => (
+              <View key={position} className="min-w-24 flex-1">
+                <TextField
+                  accessibilityLabel={`Floor ${floorIndex + 1}, ${noun} ${position + 1} number`}
+                  value={labelFor(floorIndex, position)}
+                  onChangeText={(value) => onLabel(floorIndex, position, value)}
+                  autoCapitalize="characters"
+                  selectTextOnFocus
+                />
+              </View>
+            ))}
+          </View>
+        </Card>
+      ))}
+    </>
+  );
+}
+
 export function RatesStep({
   rentText,
   onRentText,

@@ -39,7 +39,14 @@
       ],
       "expo-sqlite",
       "expo-secure-store",
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Rent Khata uses the camera so you can photograph an electricity meter and keep the picture with that month's bill.",
+          "photosPermission": "Rent Khata needs access to your photos so you can attach a picture of an electricity meter to a bill."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
