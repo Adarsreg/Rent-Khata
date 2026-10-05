@@ -1,3 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Brand color as RGB triplets, consumed by tailwind.config.js via
+ * `rgb(var(--c-x) / <alpha-value>)`.
+ *
+ * MIRRORS src/theme/palette.js — that file is the source of truth. After
+ * editing it, regenerate these values and run `npm run check:contrast`.
+ *
+ * NativeWind maps `prefers-color-scheme` onto the device color scheme, so a
+ * single `bg-surface` resolves per-scheme with no `dark:` prefix anywhere.
+ */
+@layer base {
+  :root {
+    --c-canvas: 244 246 248;
+    --c-surface: 255 255 255;
+    --c-surface2: 240 242 245;
+    --c-surface3: 230 234 239;
+    --c-border: 220 225 231;
+    --c-border-strong: 185 194 204;
+    --c-text: 11 15 20;
+    --c-text-secondary: 74 85 96;
+    --c-text-tertiary: 92 102 111;
+    --c-text-inverse: 255 255 255;
+    --c-brand: 98 70 234;
+    --c-brand-hover: 78 54 201;
+    --c-brand-muted: 238 234 254;
+    --c-brand-text: 90 63 214;
+    --c-on-brand: 255 255 255;
+    --c-paid: 4 107 78;
+    --c-paid-muted: 222 247 236;
+    --c-due: 154 71 8;
+    --c-due-muted: 254 243 199;
+    --c-overdue: 185 28 28;
+    --c-overdue-muted: 254 226 226;
+    --c-neutral: 92 102 111;
+    --c-neutral-muted: 240 242 245;
+    --c-glass-solid: 255 255 255;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --c-canvas: 11 15 20;
+      --c-surface: 20 26 33;
+      --c-surface2: 28 36 45;
+      --c-surface3: 37 48 57;
+      --c-border: 43 54 66;
+      --c-border-strong: 60 73 86;
+      --c-text: 242 245 247;
+      --c-text-secondary: 163 175 187;
+      --c-text-tertiary: 148 158 168;
+      --c-text-inverse: 11 15 20;
+      --c-brand: 121 89 248;
+      --c-brand-hover: 142 114 255;
+      --c-brand-muted: 36 30 77;
+      --c-brand-text: 155 130 255;
+      --c-on-brand: 255 255 255;
+      --c-paid: 52 211 153;
+      --c-paid-muted: 14 46 37;
+      --c-due: 251 191 36;
+      --c-due-muted: 51 39 10;
+      --c-overdue: 248 113 113;
+      --c-overdue-muted: 58 26 26;
+      --c-neutral: 148 158 168;
+      --c-neutral-muted: 26 33 40;
+      --c-glass-solid: 20 26 33;
+    }
+  }
+}
+
+/* Web-only font stacks (harmless on native). */
 :root {
   --font-display:
     Spline Sans, Inter, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji,

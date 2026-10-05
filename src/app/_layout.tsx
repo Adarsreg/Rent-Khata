@@ -1,18 +1,97 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
+import '@/global.css';
+// Side-effect import: registers GlassView/BlurView/Animated.* with NativeWind,
+// which otherwise ignores their className without warning. Must run before
+// any screen renders.
+import '@/theme/css-interop';
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, ScrollView, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-SplashScreen.preventAutoHideAsync();
+import { Text } from '@/components/text';
+import { openDatabase } from '@/db/client';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useColors } from '@/theme/tokens';
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+export default function RootLayout() {
+  const scheme = useColorScheme() === 'light' ? 'light' : 'dark';
+  const colors = useColors();
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.canvas }}>
+      <ThemeProvider value={scheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+        <StorageGate />
+      </ThemeProvider>
+    </GestureHandlerRootView>
+  );
+}
+
+/**
+ * Holds back every screen until storage is open and migrated.
+ *
+ * Rendering earlier would let a repository query run against a database with
+ * no tables, which Drizzle reports as a bare "no such table".
+ */
+function StorageGate() {
+  const colors = useColors();
+  const [ready, setReady] = useState(false);
+  const [failure, setFailure] = useState<Error | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    openDatabase()
+      .then(() => active && setReady(true))
+      .catch((cause: unknown) => {
+        if (!active) return;
+        setFailure(cause instanceof Error ? cause : new Error(String(cause)));
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  if (failure) return <StorageUnavailable cause={failure} />;
+
+  if (!ready) {
+    return (
+      <View className="flex-1 items-center justify-center bg-canvas">
+        <ActivityIndicator color={colors.brand} />
+      </View>
+    );
+  }
+
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: colors.canvas },
+      }}>
+      <Stack.Screen name="index" />
+      <Stack.Screen name="onboarding" />
+      <Stack.Screen name="unit/[id]" options={{ presentation: 'modal' }} />
+    </Stack>
+  );
+}
+
+/** Shown instead of a blank screen when the database cannot be opened. */
+function StorageUnavailable({ cause }: { cause: Error }) {
+  return (
+    <ScrollView
+      className="bg-canvas"
+      contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', gap: 12, padding: 28 }}>
+      <Text variant="heading">Couldn’t open your data</Text>
+      <Text variant="body" tone="secondary">
+        Your rent records could not be loaded. Restarting the app usually fixes this. If it
+        keeps happening, the data file may be damaged.
+      </Text>
+      <Text variant="caption" tone="tertiary" selectable>
+        {cause.message}
+      </Text>
+    </ScrollView>
   );
 }

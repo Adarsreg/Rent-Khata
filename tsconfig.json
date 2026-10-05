@@ -2,6 +2,14 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    // Domain tests import siblings with an explicit .ts extension so Node's
+    // native type stripping can run them with no build step. Safe because
+    // tsc only ever runs with --noEmit here; Metro does the real transform.
+    "allowImportingTsExtensions": true,
+    // expo/tsconfig.base sets customConditions: ["react-native"], under which
+    // @types/node's export map doesn't resolve. Naming it explicitly brings
+    // node:test / node:assert in for the domain tests.
+    "types": ["node"],
     "paths": {
       "@/*": [
         "./src/*"
@@ -15,6 +23,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts"
+    "expo-env.d.ts",
+    "nativewind-env.d.ts"
   ]
 }
