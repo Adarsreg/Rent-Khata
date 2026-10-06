@@ -1,60 +1,73 @@
-import { Text as RNText, type TextProps as RNTextProps } from 'react-native';
+import { Platform, Text as RNText, type TextProps as RNTextProps } from 'react-native';
 
 import { tabularNums } from '@/theme/tokens';
 
-type Variant =
-  | 'hero'
-  | 'display'
-  | 'title'
-  | 'heading'
-  | 'body'
-  | 'label'
-  | 'caption'
-  | 'kicker';
+type Variant = 'display' | 'title' | 'heading' | 'body' | 'label' | 'caption' | 'kicker';
+type Weight = 'regular' | 'medium' | 'semibold' | 'bold';
 
-const VARIANTS: Record<Variant, string> = {
-  hero: 'text-hero font-bold tracking-tighter text-text',
-  display: 'text-display font-bold tracking-tight text-text',
-  title: 'text-title font-semibold tracking-tight text-text',
-  heading: 'text-heading font-semibold text-text',
-  body: 'text-body text-text',
-  label: 'text-label font-medium text-text',
-  caption: 'text-caption text-text-secondary',
-  /**
-   * Short line introducing the block below it (e.g. the month above a total).
-   * Sentence case, not uppercase: all-caps costs legibility by removing word
-   * shape, and is one of the most recognisable tells of a templated layout.
-   */
-  kicker: 'text-label font-semibold text-text-secondary',
+/**
+ * Typography on the platform's own font — San Francisco on iOS, Roboto on
+ * Android — which is also what WhatsApp uses.
+ *
+ * A bundled webfont was tried and removed. Instrument Sans ships 343
+ * codepoints with **no ₹ (U+20B9) and no Devanagari**, so every rupee amount
+ * rendered its symbol in a fallback face while the digits used the webfont,
+ * and a tenant named in Hindi would have done the same. A ledger that cannot
+ * draw its own currency is not a typographic trade-off worth making — and the
+ * system faces cover both, load instantly, and add nothing to the bundle.
+ */
+const WEIGHTS: Record<Weight, RNTextProps['style']> = {
+  regular: { fontWeight: '400' },
+  medium: { fontWeight: '500' },
+  semibold: { fontWeight: '600' },
+  bold: { fontWeight: '700' },
 };
 
-export type TextProps = RNTextProps & {
-  variant?: Variant;
-  /** Dims to the secondary/tertiary ramp without restating the variant. */
-  tone?: 'default' | 'secondary' | 'tertiary' | 'brand';
-  /**
-   * Tabular figures. Set this on every currency and meter-reading value so
-   * digits line up in a column — proportional digits make a stack of rupee
-   * amounts look visibly ragged.
-   */
-  numeric?: boolean;
+/**
+ * Tracking tightens as size grows — the spacing that reads well at 15px looks
+ * loose and unset at 40px. This is most of the difference between type that
+ * looks considered and type that looks defaulted.
+ *
+ * The floor is 14px. There is no 12px tier: this is read by landlords of every
+ * age, often outdoors, and nothing here is unimportant enough to justify one.
+ */
+const VARIANTS: Record<Variant, { className: string; letterSpacing: number; weight: Weight }> = {
+  display: { className: 'text-display', letterSpacing: -1.2, weight: 'bold' },
+  title: { className: 'text-title', letterSpacing: -0.5, weight: 'semibold' },
+  heading: { className: 'text-heading', letterSpacing: -0.3, weight: 'semibold' },
+  body: { className: 'text-body', letterSpacing: -0.1, weight: 'regular' },
+  label: { className: 'text-label', letterSpacing: -0.05, weight: 'medium' },
+  caption: { className: 'text-caption', letterSpacing: 0, weight: 'regular' },
+  /** Quiet line introducing the block below it. Sentence case, never caps. */
+  kicker: { className: 'text-label', letterSpacing: -0.05, weight: 'medium' },
 };
 
 const TONES = {
-  default: '',
+  default: 'text-text',
   secondary: 'text-text-secondary',
   tertiary: 'text-text-tertiary',
   brand: 'text-brand-text',
+  paid: 'text-paid',
+  overdue: 'text-overdue',
 } as const;
 
+/** Default colour per variant, so `tone` is only needed to deviate. */
+const DEFAULT_TONE: Record<Variant, keyof typeof TONES> = {
+  display: 'default',
+  title: 'default',
+  heading: 'default',
+  body: 'default',
+  label: 'default',
+  caption: 'secondary',
+  kicker: 'secondary',
+};
+
 /**
- * OS-level font scaling stays ON — a landlord who has set large text in
- * Settings needs it here most of all. It is capped so a 2x setting cannot
- * collapse the building elevation, and the cap is looser for body copy than
- * for the big display numbers, which already start large.
+ * OS font scaling stays on — someone who set large text in Settings needs it
+ * here most. Capped per variant so a 2x setting cannot collapse the building
+ * elevation; looser for body copy than for display figures, which start large.
  */
 const MAX_SCALE: Record<Variant, number> = {
-  hero: 1.2,
   display: 1.3,
   title: 1.4,
   heading: 1.5,
@@ -64,19 +77,47 @@ const MAX_SCALE: Record<Variant, number> = {
   kicker: 1.8,
 };
 
+export type TextProps = RNTextProps & {
+  variant?: Variant;
+  /** Overrides the variant default. */
+  tone?: keyof typeof TONES;
+  /** Overrides the weight without changing the size. */
+  weight?: Weight;
+  /**
+   * Tabular figures. Set on every currency and meter value so digits line up
+   * in a column — proportional digits make a stack of rupee amounts ragged.
+   */
+  numeric?: boolean;
+};
+
 export function Text({
   variant = 'body',
-  tone = 'default',
+  tone,
+  weight,
   numeric = false,
   className,
   style,
   ...rest
 }: TextProps) {
+  const spec = VARIANTS[variant];
+
   return (
     <RNText
       maxFontSizeMultiplier={MAX_SCALE[variant]}
-      className={[VARIANTS[variant], TONES[tone], className].filter(Boolean).join(' ')}
-      style={[numeric && tabularNums, style]}
+      className={[spec.className, TONES[tone ?? DEFAULT_TONE[variant]], className]
+        .filter(Boolean)
+        .join(' ')}
+      style={[
+        // `fontFamily` is deliberately unset: React Native then uses the
+        // platform UI font, which carries ₹ and Devanagari.
+        WEIGHTS[weight ?? spec.weight],
+        { letterSpacing: spec.letterSpacing },
+        // Android renders a lighter face for 500/600 unless told otherwise;
+        // without this, medium and semibold look identical to regular.
+        Platform.OS === 'android' ? { includeFontPadding: false } : null,
+        numeric && tabularNums,
+        style,
+      ]}
       {...rest}
     />
   );

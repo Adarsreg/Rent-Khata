@@ -1,89 +1,102 @@
 /**
- * Single source of truth for brand color.
+ * Single source of truth for colour.
  *
  * Plain CJS so `tailwind.config.js` can `require()` it while `tokens.ts`
- * imports it for raw values (Reanimated, StatusBar, icon color props).
- * Keeping one copy means a className and a style prop cannot drift apart.
+ * imports it for raw values. One copy means a className and a style prop
+ * cannot drift apart.
  *
- * Design intent: deep slate canvas rather than pure black — glass and blur
- * read as dead flat gray over #000. Brand is violet specifically so it never
- * collides with the paid/due/overdue status colors.
+ * ── WhatsApp-derived ────────────────────────────────────────────────────
+ * Surfaces, greens and greys follow WhatsApp, because that is where this
+ * app's users already live and a bill that looks like the app they send it
+ * from needs no explaining.
  *
- * ACCESSIBILITY: every text color here clears WCAG AA (4.5:1) against the
- * *worst-case* surface it can land on — surface3 in dark, surface3 in light,
- * not just the base surface. The app is for landlords of every age reading
- * money on a phone, often outdoors. Verified by `npm run check:contrast`;
- * re-run it after touching any value below.
+ * Two deliberate departures, both for legibility:
+ *
+ * 1. WhatsApp's signature greens (#25D366, #00A884) carry white text at
+ *    about 2.5:1 and 3.0:1 — well under the 4.5:1 floor. Filled buttons use
+ *    a darker green of the same hue instead; the bright greens stay for
+ *    accents and indicators, where contrast is not load-bearing.
+ * 2. Text greens are darkened for the same reason. A rupee figure has to be
+ *    readable outdoors, which is not something a chat app has to care about.
+ *
+ * Paid still "lights up" the unit, as in the building-at-dusk idea — only now
+ * in WhatsApp's outgoing-bubble green rather than brass.
+ *
+ * ACCESSIBILITY: every text colour clears WCAG AA (4.5:1) against the
+ * worst-case surface it can land on. Enforced by `npm test`.
  */
 const palette = {
-  dark: {
-    canvas: '#0B0F14',
-    surface: '#141A21',
-    surface2: '#1C242D',
-    surface3: '#253039',
-    border: '#2B3642',
-    borderStrong: '#3C4956',
-
-    text: '#F2F5F7',
-    textSecondary: '#A3AFBB',
-    textTertiary: '#949EA8',
-    textInverse: '#0B0F14',
-
-    /** Fill only. White sits on this, so it cannot be any lighter. */
-    brand: '#7959F8',
-    brandHover: '#8E72FF',
-    brandMuted: '#241E4D',
-    /** Brand as *text* — lighter, because a fill and a glyph need different contrast. */
-    brandText: '#9B82FF',
-    onBrand: '#FFFFFF',
-
-    paid: '#34D399',
-    paidMuted: '#0E2E25',
-    due: '#FBBF24',
-    dueMuted: '#33270A',
-    overdue: '#F87171',
-    overdueMuted: '#3A1A1A',
-    neutral: '#949EA8',
-    neutralMuted: '#1A2128',
-
-    /** Tint laid over native glass/blur so it reads as *our* material. */
-    glassTint: 'rgba(20, 26, 33, 0.55)',
-    /** Fallback when neither Liquid Glass nor Android blur is available. */
-    glassSolid: '#141A21',
-    scrim: 'rgba(0, 0, 0, 0.6)',
-  },
-
   light: {
-    canvas: '#F4F6F8',
+    // WhatsApp light: white chat list on a warm grey chrome.
+    canvas: '#F0F2F5',
     surface: '#FFFFFF',
-    surface2: '#F0F2F5',
-    surface3: '#E6EAEF',
-    border: '#DCE1E7',
-    borderStrong: '#B9C2CC',
+    surface2: '#F7F8FA',
+    surface3: '#E9EDEF',
+    border: '#E1E4E8',
+    borderStrong: '#C3CBD1',
 
-    text: '#0B0F14',
-    textSecondary: '#4A5560',
-    textTertiary: '#5C666F',
+    text: '#111B21',
+    textSecondary: '#53636F',
+    textTertiary: '#5C6B77',
     textInverse: '#FFFFFF',
 
-    brand: '#6246EA',
-    brandHover: '#4E36C9',
-    brandMuted: '#EEEAFE',
-    brandText: '#5A3FD6',
+    /** Filled buttons. Darker than WhatsApp's #008069 so white clears AA. */
+    brand: '#00674F',
+    brandHover: '#00543F',
+    brandMuted: '#E7F5EF',
+    brandText: '#00604A',
     onBrand: '#FFFFFF',
 
+    /** Paid — the outgoing-message green, as a lit unit. */
     paid: '#046B4E',
-    paidMuted: '#DEF7EC',
-    due: '#9A4708',
-    dueMuted: '#FEF3C7',
-    overdue: '#B91C1C',
-    overdueMuted: '#FEE2E2',
-    neutral: '#5C666F',
+    paidMuted: '#D9FDD3',
+    /** Due — colourless on purpose. Not yet done is not a problem. */
+    due: '#53636F',
+    dueMuted: '#F0F2F5',
+    /** Overdue — the single alarm in the whole interface. */
+    overdue: '#A8261B',
+    overdueMuted: '#FDEAE7',
+    neutral: '#5C6B77',
     neutralMuted: '#F0F2F5',
 
-    glassTint: 'rgba(255, 255, 255, 0.6)',
+    glassTint: 'rgba(255, 255, 255, 0.76)',
     glassSolid: '#FFFFFF',
-    scrim: 'rgba(11, 15, 20, 0.4)',
+    scrim: 'rgba(17, 27, 33, 0.45)',
+  },
+
+  dark: {
+    // WhatsApp dark: near-black teal, with lifted panels.
+    canvas: '#0B141A',
+    surface: '#111B21',
+    surface2: '#1C2A33',
+    surface3: '#24353F',
+    border: '#2A3942',
+    borderStrong: '#3E5259',
+
+    text: '#E9EDEF',
+    textSecondary: '#A7B4BC',
+    textTertiary: '#98A6AF',
+    textInverse: '#0B141A',
+
+    /** Dark mode can use the real WhatsApp teal: dark text sits on it. */
+    brand: '#00A884',
+    brandHover: '#06CF9C',
+    brandMuted: '#1C2A33',
+    brandText: '#53BDAC',
+    onBrand: '#0B141A',
+
+    paid: '#5BC98F',
+    paidMuted: '#103629',
+    due: '#A7B4BC',
+    dueMuted: '#1C2A33',
+    overdue: '#F0877A',
+    overdueMuted: '#3B1F1C',
+    neutral: '#98A6AF',
+    neutralMuted: '#18242B',
+
+    glassTint: 'rgba(17, 27, 33, 0.72)',
+    glassSolid: '#111B21',
+    scrim: 'rgba(0, 0, 0, 0.6)',
   },
 };
 

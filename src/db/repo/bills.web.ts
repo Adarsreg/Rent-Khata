@@ -108,5 +108,10 @@ const _signatureCheck: {
   typicalUnits: typeof Sqlite.typicalUnits;
   saveBill: typeof Sqlite.saveBill;
   setPaid: typeof Sqlite.setPaid;
-} = { getBill, listBillsForPeriod, resolvePrevReading, typicalUnits, saveBill, setPaid };
+  listAllBills: typeof Sqlite.listAllBills;
+} = { getBill, listBillsForPeriod, resolvePrevReading, typicalUnits, saveBill, setPaid, listAllBills };
 void _signatureCheck;
+
+export async function listAllBills(): Promise<Bill[]> {
+  return live().sort((a, b) => b.period.localeCompare(a.period));
+}

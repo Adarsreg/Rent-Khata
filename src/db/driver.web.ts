@@ -1,3 +1,4 @@
+import { seedPreview } from './preview/seed';
 import { resetTables } from './preview/store';
 import type { StorageAdapter } from './types';
 
@@ -15,9 +16,11 @@ export const adapter: StorageAdapter = {
   label: 'in-memory preview',
 
   async connect() {
-    // A reload is a fresh start, which for a preview is the useful behaviour:
-    // it always exercises the setup wizard.
+    // A reload is a fresh start. It lands on a furnished building rather
+    // than an empty wizard, because the point of the preview is to look at
+    // the interface, and an empty app shows almost none of it.
     resetTables();
+    seedPreview();
     return null;
   },
 };

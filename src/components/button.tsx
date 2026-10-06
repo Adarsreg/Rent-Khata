@@ -16,11 +16,16 @@ const CONTAINER: Record<Variant, string> = {
   success: 'bg-paid-muted border border-paid',
 };
 
-const LABEL: Record<Variant, string> = {
-  primary: 'text-on-brand',
-  secondary: 'text-text',
-  ghost: 'text-brand-text',
-  success: 'text-paid',
+/**
+ * Label colour is applied as an inline style, not a class. A class would be
+ * competing with the one the Text variant already sets, and inline style is
+ * the only form guaranteed to win that.
+ */
+const LABEL_TOKEN: Record<Variant, 'onBrand' | 'text' | 'brandText' | 'paid'> = {
+  primary: 'onBrand',
+  secondary: 'text',
+  ghost: 'brandText',
+  success: 'paid',
 };
 
 const ICON_TOKEN: Record<Variant, 'onBrand' | 'text' | 'brandText' | 'paid'> = {
@@ -83,7 +88,8 @@ export function Button({
           ) : null}
           <Text
             variant={size === 'lg' ? 'body' : 'label'}
-            className={`${LABEL[variant]} font-semibold`}>
+            weight="semibold"
+            style={{ color: colors[LABEL_TOKEN[variant]] }}>
             {label}
           </Text>
         </>

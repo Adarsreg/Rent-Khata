@@ -104,5 +104,24 @@ const _signatureCheck: {
   createBuilding: typeof Sqlite.createBuilding;
   updateBuilding: typeof Sqlite.updateBuilding;
   getStructure: typeof Sqlite.getStructure;
-} = { BUILDING_ID, getBuilding, createBuilding, updateBuilding, getStructure };
+  exportAll: typeof Sqlite.exportAll;
+  replaceAll: typeof Sqlite.replaceAll;
+} = { BUILDING_ID, getBuilding, createBuilding, updateBuilding, getStructure, exportAll, replaceAll };
 void _signatureCheck;
+
+export async function exportAll() {
+  return {
+    buildings: [...tables.buildings],
+    floors: [...tables.floors],
+    units: [...tables.units],
+    bills: [...tables.bills],
+  };
+}
+
+export async function replaceAll(data: Awaited<ReturnType<typeof exportAll>>): Promise<void> {
+  tables.buildings = [...data.buildings];
+  tables.floors = [...data.floors];
+  tables.units = [...data.units];
+  tables.bills = [...data.bills];
+  notifyChange();
+}

@@ -28,14 +28,15 @@ export type BillDraft = {
   setRentText: (value: string) => void;
   readingText: string;
   setReadingText: (value: string) => void;
-  openingText: string;
-  setOpeningText: (value: string) => void;
+  /** Editable: a meter gets misread, swapped, or corrected after the fact. */
+  previousText: string;
+  setPreviousText: (value: string) => void;
   /** Optional meter photo kept with the bill as proof of the reading. */
   photoUri: string | null;
   setPhotoUri: (uri: string | null) => void;
 
-  /** True until the unit's one-time opening reading has been established. */
-  needsOpeningReading: boolean;
+  /** No earlier bill exists, so this is the unit's first ever reading. */
+  isFirstReading: boolean;
   /** Previous reading in force, from history or the opening value. */
   previousReading: number | null;
   /** Parsed new reading, or null while the field is empty/invalid. */
@@ -56,7 +57,7 @@ export function useBillDraft(data: UnitBillData | null | undefined, period: Peri
   const [tenantPhone, setTenantPhone] = useState('');
   const [rentText, setRentText] = useState('');
   const [readingText, setReadingText] = useState('');
-  const [openingText, setOpeningText] = useState('');
+  const [previousText, setPreviousText] = useState('');
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [seeded, setSeeded] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -71,15 +72,20 @@ export function useBillDraft(data: UnitBillData | null | undefined, period: Peri
     setTenantPhone(data.unit.tenantPhone ?? '');
     setRentText(String(Math.round(data.rentPaise / 100)));
     setReadingText(data.bill?.newReading != null ? String(data.bill.newReading) : '');
-    setOpeningText(data.unit.openingReading != null ? String(data.unit.openingReading) : '');
+    // Seeded from whatever we resolved: last month closing figure, or the
+    // one-time opening reading. Editable either way.
+    setPreviousText(data.prevReading != null ? String(data.prevReading) : '');
     setPhotoUri(data.bill?.photoUri ?? null);
     setSeeded(true);
   }, [data, seeded]);
 
-  const needsOpeningReading = !data?.prevReadingIsDerived;
-  const previousReading = needsOpeningReading
-    ? parseInteger(openingText)
-    : (data?.prevReading ?? null);
+  /**
+   * True when no earlier bill exists, so this is the unit's very first
+   * reading. Only changes the wording and the hint — the field itself is
+   * editable in both cases.
+   */
+  const isFirstReading = !data?.prevReadingIsDerived;
+  const previousReading = parseInteger(previousText);
   const newReading = parseInteger(readingText);
   const rentPaise = parseMoneyToPaise(rentText) ?? data?.rentPaise ?? 0;
   const ratePaisePerUnit = data?.ratePaisePerUnit ?? 0;
@@ -95,9 +101,9 @@ export function useBillDraft(data: UnitBillData | null | undefined, period: Peri
       label: labelText.trim() || data.unit.label,
       tenantName: tenantName.trim() || null,
       tenantPhone: tenantPhone.replace(/\D/g, '') || null,
-      // The opening reading is written once and then never again; after that
-      // the previous reading comes from the prior bill.
-      ...(needsOpeningReading && previousReading != null
+      // Keep the unit's opening reading in step while this is still the
+      // first bill; later months carry their own prevReading on the row.
+      ...(isFirstReading && previousReading != null
         ? { openingReading: previousReading }
         : {}),
     });
@@ -133,12 +139,12 @@ export function useBillDraft(data: UnitBillData | null | undefined, period: Peri
     setRentText,
     readingText,
     setReadingText,
-    openingText,
-    setOpeningText,
+    previousText,
+    setPreviousText,
     photoUri,
     setPhotoUri,
 
-    needsOpeningReading,
+    isFirstReading,
     previousReading,
     newReading,
     rentPaise,

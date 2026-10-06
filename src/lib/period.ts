@@ -36,7 +36,7 @@ function parts(period: Period): [number, number] {
   return [y, m];
 }
 
-function shiftPeriod(period: Period, months: number): Period {
+export function shiftPeriod(period: Period, months: number): Period {
   const [y, m] = parts(period);
   // Date normalises month overflow/underflow across year boundaries.
   return toPeriod(new Date(y, m - 1 + months, 1));

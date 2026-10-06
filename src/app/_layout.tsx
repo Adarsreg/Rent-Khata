@@ -5,6 +5,7 @@ import '@/global.css';
 import '@/theme/css-interop';
 
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, View } from 'react-native';
@@ -15,10 +16,12 @@ import { openDatabase } from '@/db/client';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useColors } from '@/theme/tokens';
 
+// Held until storage is ready, so the first frame is a usable one.
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
 export default function RootLayout() {
   const scheme = useColorScheme() === 'light' ? 'light' : 'dark';
   const colors = useColors();
-
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.canvas }}>
       <ThemeProvider value={scheme === 'dark' ? DarkTheme : DefaultTheme}>
@@ -48,6 +51,11 @@ function StorageGate() {
       .catch((cause: unknown) => {
         if (!active) return;
         setFailure(cause instanceof Error ? cause : new Error(String(cause)));
+      })
+      .finally(() => {
+        // Reveal the app once there is something real to show — including
+        // the error screen, which is still better than a stuck splash.
+        SplashScreen.hideAsync().catch(() => {});
       });
 
     return () => {
@@ -74,6 +82,7 @@ function StorageGate() {
       <Stack.Screen name="index" />
       <Stack.Screen name="onboarding" />
       <Stack.Screen name="unit/[id]" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="remind" options={{ presentation: 'modal' }} />
     </Stack>
   );
 }

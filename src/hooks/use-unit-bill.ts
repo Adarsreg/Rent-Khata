@@ -42,7 +42,7 @@ export function useUnitBill(unitId: string, period: Period) {
       unit,
       building,
       bill,
-      status: deriveStatus(bill, period),
+      status: deriveStatus({ hasTenant: Boolean(unit.tenantName), bill }, period),
       // A saved bill keeps the previous reading it was created with, so
       // re-opening an old month shows what was actually billed.
       prevReading: bill?.prevReading ?? prevReading,

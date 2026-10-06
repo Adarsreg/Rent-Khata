@@ -68,7 +68,7 @@ export function BuildingStep({
               className={`rounded-md border p-4 ${
                 selected ? 'border-brand bg-brand-muted' : 'border-border bg-surface'
               }`}>
-              <Text variant="body" className="font-semibold">
+              <Text variant="body" weight="semibold">
                 {option.title}
               </Text>
               <Text variant="caption" tone="secondary">
@@ -124,7 +124,7 @@ export function UnitsStep({
       {floorUnitCounts.map((count, index) => (
         <Card key={index} className="flex-row items-center justify-between">
           <View className="flex-1 pr-3">
-            <Text variant="body" className="font-semibold">
+            <Text variant="body" weight="semibold">
               Floor {index + 1}
             </Text>
             <Text variant="caption" tone="tertiary" numberOfLines={1}>

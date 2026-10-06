@@ -48,11 +48,12 @@ module.exports = {
         // nothing here important enough to justify it.
         caption: ['14px', '20px'],
         label: ['15px', '20px'],
-        body: ['17px', '24px'],
-        heading: ['22px', '28px'],
-        title: ['30px', '36px'],
-        display: ['40px', '46px'],
-        hero: ['52px', '56px'],
+        body: ['17px', '25px'],
+        heading: ['21px', '27px'],
+        title: ['27px', '32px'],
+        // The month total. Big and tight, with -1.4 tracking from text.tsx —
+        // it is the one figure allowed to carry a screen.
+        display: ['44px', '46px'],
       },
       spacing: {
         0.5: '2px',

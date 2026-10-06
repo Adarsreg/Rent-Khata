@@ -1,73 +1,100 @@
 import Feather from '@expo/vector-icons/Feather';
 import { View } from 'react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { STATUS_META } from '@/domain/status';
 import type { UnitCell } from '@/hooks/use-building-month';
 import { formatAmount } from '@/lib/money';
-import { STAGGER_MS, useColors } from '@/theme/tokens';
+import { useLayout } from '@/theme/layout';
+import { useColors } from '@/theme/tokens';
 
 import { PressableScale } from './pressable-scale';
 import { Text } from './text';
 
-const ICON_TOKEN = {
-  paid: 'paid',
-  due: 'due',
-  overdue: 'overdue',
-  notBilled: 'neutral',
-} as const;
-
 /**
- * One apartment in the building elevation. Carries three signals at a glance:
- * the label, the amount, and status as icon + border color (never color
- * alone — see domain/status.ts).
+ * One unit, drawn as a window in the building.
+ *
+ * A landlord already reads a building this way: walk up after dark and the
+ * lit windows are the flats that are settled. So paid units glow brass and
+ * everything else stays dark glass. The metaphor does the work a colour
+ * legend would otherwise have to — but the label and icon are still there,
+ * because colour alone is never the signal (see domain/status.ts).
+ *
+ * Only two states get colour. Overdue is the single alarm in the app; merely
+ * unpaid is not a problem yet and stays quiet.
  */
-export function UnitTile({
-  cell,
-  index,
-  onPress,
-}: {
-  cell: UnitCell;
-  /** Position in the overall stagger sequence, not within the floor. */
-  index: number;
-  onPress: () => void;
-}) {
+export function UnitTile({ cell, onPress }: { cell: UnitCell; onPress: () => void }) {
   const colors = useColors();
-  const meta = STATUS_META[cell.status];
+  const { unitTileMinHeight, sizeClass } = useLayout();
+  const compactPadding = sizeClass === 'small' || sizeClass === 'compact';
   const { unit, bill, status } = cell;
 
-  return (
-    <Animated.View entering={FadeIn.delay(index * STAGGER_MS).duration(220)} className="flex-1">
-      <PressableScale
-        accessibilityLabel={`${unit.label}. ${meta.label}. ${
-          bill?.totalPaise != null ? formatAmount(bill.totalPaise) + ' rupees' : 'No bill yet'
-        }`}
-        scaleTo={0.95}
-        onPress={onPress}
-        className={`min-h-24 justify-between rounded-md border-2 bg-surface p-3 ${meta.border} ${
-          status === 'notBilled' ? 'border-dashed' : ''
-        }`}>
-        <View className="flex-row items-start justify-between gap-1">
-          <Text variant="caption" tone="secondary" numberOfLines={1} className="flex-1">
-            {unit.label}
-          </Text>
-          <Feather name={meta.icon} size={15} color={colors[ICON_TOKEN[status]]} />
-        </View>
+  const lit = status === 'paid';
+  const alarm = status === 'overdue';
+  /** Tenanted but no reading entered — work for the owner to do. */
+  const awaitingReading = status === 'notBilled';
+  /** No tenant. Nothing to do, so it recedes rather than asking for attention. */
+  const vacant = status === 'vacant';
 
-        {/*
-          The amount, not the unit number, is what people scan a building for,
-          so it gets the larger type. The label above it is the quieter line.
-        */}
-        {bill?.totalPaise != null ? (
-          <Text variant="label" numeric className="font-bold text-text" numberOfLines={1}>
-            {formatAmount(bill.totalPaise)}
-          </Text>
-        ) : (
-          <Text variant="caption" tone="tertiary" numberOfLines={1}>
-            {unit.tenantName ? 'Add reading' : 'Set up'}
-          </Text>
-        )}
-      </PressableScale>
-    </Animated.View>
+  return (
+    <PressableScale
+      accessibilityLabel={buildLabel(cell)}
+      scaleTo={0.96}
+      onPress={onPress}
+      style={{ minHeight: unitTileMinHeight }}
+      className={[
+        'flex-1 justify-between overflow-hidden rounded-md border',
+        compactPadding ? 'p-2.5' : 'p-3',
+        lit && 'border-paid bg-paid-muted',
+        alarm && 'border-overdue bg-overdue-muted',
+        // Awaiting a reading: dashed, because it is an outline to fill in.
+        awaitingReading && 'border-dashed border-border-strong bg-transparent',
+        // Vacant: no tenant, nothing to do. It recedes instead of nagging.
+        vacant && 'border-border bg-transparent opacity-60',
+        !lit && !alarm && !awaitingReading && !vacant && 'border-border bg-surface',
+      ]
+        .filter(Boolean)
+        .join(' ')}>
+      <View className="flex-row items-start justify-between gap-1">
+        <Text
+          variant="caption"
+          tone={lit ? 'paid' : alarm ? 'overdue' : 'secondary'}
+          numberOfLines={1}
+          className="flex-1">
+          {unit.label}
+        </Text>
+
+        {lit ? <Feather name="check" size={14} color={colors.paid} /> : null}
+        {alarm ? <Feather name="alert-circle" size={14} color={colors.overdue} /> : null}
+      </View>
+
+      {/* The amount is what the eye is actually hunting for, so it is the
+          loudest thing on the tile; the unit number is the quieter line. */}
+      {bill?.totalPaise != null ? (
+        <Text
+          variant="label"
+          numeric
+          weight="bold"
+          numberOfLines={1}
+          tone={lit ? 'paid' : alarm ? 'overdue' : 'default'}>
+          {formatAmount(bill.totalPaise)}
+        </Text>
+      ) : vacant ? (
+        <Text variant="caption" tone="tertiary">
+          Empty
+        </Text>
+      ) : (
+        <Text variant="label" tone="tertiary" weight="medium">
+          —
+        </Text>
+      )}
+    </PressableScale>
   );
+}
+
+/** One sentence a screen reader can read without the visual metaphor. */
+function buildLabel({ unit, bill, status }: UnitCell): string {
+  const amount = bill?.totalPaise != null ? `${formatAmount(bill.totalPaise)} rupees` : 'no bill yet';
+  // STATUS_META already names every state; duplicating the list here is how
+  // a new status ends up announced as "not billed".
+  return `${unit.label}, ${STATUS_META[status].label.toLowerCase()}, ${amount}`;
 }

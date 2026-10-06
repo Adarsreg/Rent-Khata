@@ -38,9 +38,6 @@ export const motion = {
   },
 } as const;
 
-/** Stagger step for list/grid entrances. Keep the total under ~400ms. */
-export const STAGGER_MS = 28;
-
 /**
  * Tabular figures so currency columns align vertically down the building
  * view — proportional digits make a column of rupee amounts look ragged.
@@ -56,8 +53,8 @@ export const tabularNums = { fontVariant: ['tabular-nums' as const] };
 export const MIN_TOUCH = 48;
 
 /**
- * Bottom padding a scroll view needs so its last row clears the floating tab
- * bar. The bar overlays content rather than the navigator reserving space,
- * so each screen pads itself.
+ * Bottom padding a scroll view needs so its last row clears the tab bar.
+ * The bar is absolutely positioned so it can sit over the safe-area inset,
+ * which means each screen still pads itself by this much.
  */
-export const TAB_BAR_CLEARANCE = 96;
+export const TAB_BAR_CLEARANCE = 78;

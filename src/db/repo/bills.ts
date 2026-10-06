@@ -133,3 +133,18 @@ export async function setPaid(unitId: string, period: Period, isPaid: boolean): 
 
   notifyChange();
 }
+
+/**
+ * Every bill ever recorded, newest month first.
+ *
+ * Deliberately unpaginated: one building's whole history is a few hundred
+ * rows at most, and grouping them by month in JavaScript is simpler and
+ * faster than a query per month.
+ */
+export async function listAllBills(): Promise<Bill[]> {
+  return getDb()
+    .select()
+    .from(bill)
+    .where(isNull(bill.deletedAt))
+    .orderBy(desc(bill.period));
+}

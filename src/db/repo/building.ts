@@ -4,7 +4,7 @@ import * as Crypto from 'expo-crypto';
 import { resolveUnitLabel } from '@/domain/unit-labels';
 
 import { getDb, notifyChange, nowMs } from '../client';
-import { building, floor, unit, type Building } from '../schema';
+import { bill, building, floor, unit, type Bill, type Building, type Floor, type Unit } from '../schema';
 import type { BuildingPatch, FloorWithUnits, NewBuilding } from './types';
 
 /**
@@ -113,4 +113,48 @@ export async function getStructure(): Promise<FloorWithUnits[]> {
     .orderBy(asc(unit.position));
 
   return floors.map((f) => ({ ...f, units: units.filter((u) => u.floorId === f.id) }));
+}
+
+/**
+ * Everything stored, for the JSON backup. Includes soft-deleted rows so a
+ * restore reproduces the database exactly rather than quietly resurrecting
+ * units the owner removed.
+ */
+export async function exportAll(): Promise<{
+  buildings: Building[];
+  floors: Floor[];
+  units: Unit[];
+  bills: Bill[];
+}> {
+  const db = getDb();
+  const [buildings, floors, units, bills] = await Promise.all([
+    db.select().from(building),
+    db.select().from(floor),
+    db.select().from(unit),
+    db.select().from(bill),
+  ]);
+  return { buildings, floors, units, bills };
+}
+
+/** Replaces all stored data. Used only by restore-from-backup. */
+export async function replaceAll(data: {
+  buildings: Building[];
+  floors: Floor[];
+  units: Unit[];
+  bills: Bill[];
+}): Promise<void> {
+  await getDb().transaction(async (tx) => {
+    // Children first: a floor cannot be deleted while units reference it.
+    await tx.delete(bill);
+    await tx.delete(unit);
+    await tx.delete(floor);
+    await tx.delete(building);
+
+    if (data.buildings.length) await tx.insert(building).values(data.buildings);
+    if (data.floors.length) await tx.insert(floor).values(data.floors);
+    if (data.units.length) await tx.insert(unit).values(data.units);
+    if (data.bills.length) await tx.insert(bill).values(data.bills);
+  });
+
+  notifyChange();
 }

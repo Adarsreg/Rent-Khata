@@ -22,7 +22,7 @@ export function unitLabelFor(
     case 'pg':
       return `Room ${ordinal}`;
     case 'independent':
-      return totalFloors > 1 ? `Floor ${level} · ${ordinal}` : `Unit ${ordinal}`;
+      return totalFloors > 1 ? `${level}-${ordinal}` : `Unit ${ordinal}`;
     case 'mixed':
       // Ground floor of a mixed building is shops; flats start above it.
       return level === 1 ? `Shop ${ordinal}` : apartmentNumber(level, ordinal);

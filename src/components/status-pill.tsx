@@ -11,6 +11,7 @@ const ICON_COLOR_KEY: Record<BillStatus, 'paid' | 'due' | 'overdue' | 'neutral'>
   due: 'due',
   overdue: 'overdue',
   notBilled: 'neutral',
+  vacant: 'neutral',
 };
 
 export function StatusPill({
@@ -38,7 +39,7 @@ export function StatusPill({
         .filter(Boolean)
         .join(' ')}>
       <Feather name={meta.icon} size={iconSize} color={colors[ICON_COLOR_KEY[status]]} />
-      <Text variant="caption" className={`${meta.fg} font-semibold`}>
+      <Text variant="caption" weight="semibold" style={{ color: colors[ICON_COLOR_KEY[status]] }}>
         {meta.short}
       </Text>
     </View>

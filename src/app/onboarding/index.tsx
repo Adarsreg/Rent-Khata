@@ -10,6 +10,7 @@ import { createBuilding } from '@/db/repo/building';
 import type { FloorPlan } from '@/db/repo/types';
 import type { BuildingType } from '@/db/schema';
 import { unitLabelFor } from '@/domain/units';
+import { useLayout } from '@/theme/layout';
 import { parseMoneyToPaise } from '@/lib/money';
 
 import {
@@ -35,6 +36,7 @@ const LAST_STEP = STEP_NAMES.length - 1;
 const slotKey = (floorIndex: number, position: number) => `${floorIndex}:${position}`;
 
 export default function Onboarding() {
+  const { gutter, contentMaxWidth } = useLayout();
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
 
@@ -119,11 +121,16 @@ export default function Onboarding() {
       className="flex-1 bg-canvas"
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <SafeAreaView className="flex-1" edges={['top', 'bottom']}>
-        <Progress step={step} />
+        <Progress step={step} gutter={gutter} />
 
         <ScrollView
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24, gap: 20 }}
+          contentContainerStyle={{
+            paddingHorizontal: gutter,
+            paddingBottom: 24,
+            alignItems: 'center',
+          }}
           keyboardShouldPersistTaps="handled">
+          <View style={{ width: '100%', maxWidth: contentMaxWidth }}>
           <Animated.View
             key={step}
             entering={FadeInRight.duration(220)}
@@ -160,9 +167,12 @@ export default function Onboarding() {
               />
             )}
           </Animated.View>
+          </View>
         </ScrollView>
 
-        <View className="flex-row gap-3 px-5 pb-2 pt-3">
+        <View
+          style={{ paddingHorizontal: gutter, maxWidth: contentMaxWidth, width: '100%', alignSelf: 'center' }}
+          className="flex-row gap-3 pb-2 pt-3">
           {step > 0 && (
             <Button
               label="Back"
@@ -197,11 +207,13 @@ export default function Onboarding() {
   );
 }
 
-function Progress({ step }: { step: number }) {
+function Progress({ step, gutter }: { step: number; gutter: number }) {
   return (
-    <View className="gap-1 px-5 pb-4 pt-2">
-      <Text variant="kicker">
-        Step {step + 1} of {STEP_NAMES.length} · {STEP_NAMES[step]}
+    // The bar already says how far along you are, and the heading below says
+    // what this step is, so the label only has to carry position.
+    <View style={{ paddingHorizontal: gutter }} className="gap-1 pb-4 pt-2">
+      <Text variant="kicker" tone="secondary">
+        Step {step + 1} of {STEP_NAMES.length}
       </Text>
       <View className="mt-2 flex-row gap-1.5">
         {STEP_NAMES.map((stepName, index) => (

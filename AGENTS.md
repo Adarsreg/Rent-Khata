@@ -142,19 +142,65 @@ rewrite an earlier month's bill.
 
 ## Design system
 
-- Tokens: `src/theme/palette.js` is the single source of truth for color,
-  `require`d by `tailwind.config.js` and imported by `src/theme/tokens.ts`.
-  Values reach components as CSS variables declared in `src/global.css`.
-  Edit the palette, then update the variables in `global.css` to match.
-- Prefer `className` in markup; use `useColors()` only where a className
-  cannot reach (Reanimated worklets, icon `color` props, StatusBar).
-- **Glass goes on chrome, never on content.** `<Surface>` for headers, tab
-  bars, sheets, FABs; `<Card>` (opaque) for anything holding a number.
-- Motion uses the spring presets in `tokens.motion` — never durations/easings.
-  `motion.expressive` is reserved for marking a unit paid.
-- Status must always render **color + icon + label** (`src/domain/status.ts`),
-  never color alone.
-- Currency and meter values get `<Text numeric>` for tabular figures.
+**The idea.** A landlord knows their building as a physical object: walk up
+after dark and the lit windows are the flats that are settled. The home screen
+is that view — a paid unit glows brass, everything else is dark glass. That is
+the one bold thing in the app, and **everything else stays deliberately quiet**
+so that it keeps working.
+
+Consequences worth not undoing:
+
+- **Brass is light, not an accent.** Never reuse `paid` decoratively; it means
+  "settled".
+- **Only two states get colour.** `overdue` is the single alarm in the whole
+  interface. A merely unpaid bill is not a problem yet and gets none.
+- **Primary buttons are ink, not brand-coloured.** A coloured button competes
+  with the lit windows, and the windows are the point.
+- **Light is the primary theme.** This is a ledger, usually read in daylight.
+
+**Tokens.** `src/theme/palette.js` is the single source of truth for colour,
+`require`d by `tailwind.config.js` and imported by `src/theme/tokens.ts`.
+Values reach components as CSS variables in `src/global.css` — edit the
+palette, regenerate those variables, then run `npm test`.
+
+**Type.** One family, Instrument Sans, four weights (`src/theme/fonts.ts`).
+React Native cannot synthesise weights, so each weight is its own family name:
+use `<Text weight="semibold">`, never a `font-semibold` class. Tracking
+tightens as size grows — that is most of the difference between type that
+looks set and type that looks defaulted.
+
+**Text colour comes from `tone`, never a className.** The size variant and a
+caller colour class have equal specificity and the variant wins, which once
+rendered a dark label on a dark button. For a one-off colour pass an inline
+`style`, which always wins.
+
+**Responsiveness** lives in `src/theme/layout.ts`. Never hardcode a page
+padding or a max width:
+
+- `ScreenScroll` for page bodies; pass `wide` for dashboard-shaped screens.
+- `contentMaxWidth` caps forms and prose; `dashboardMaxWidth` is for the home
+  diagram, which genuinely wants the extra width.
+- `isWide` (>= 720dp) is the two-column switch, deliberately *below* the
+  `expanded` breakpoint so a **portrait tablet** gets two columns too.
+
+**Layout.** Use `Section` and `Rows`/`Row`, not a card per block. A page of
+identical rounded cards with identical shadows flattens every level of
+hierarchy to one, and is the clearest sign of a UI assembled rather than
+designed.
+
+**Glass goes on chrome, never on content.** `<Surface>` for headers and the
+tab bar; opaque surfaces for anything holding a number.
+
+**Motion.** Spring presets in `tokens.motion`, never durations. Motion answers
+a user action (opening, confirming). There are **no decorative mount
+animations** — a fade-and-slide on every item is a generated-UI tell.
+
+**Writing.** Sentence case everywhere. No all-caps eyebrows. No meta strings
+joined by middle dots. An empty screen names the next step.
+
+**Status** always renders colour + icon + label (`src/domain/status.ts`), never
+colour alone. Currency and meter values get `<Text numeric>` for tabular
+figures.
 
 ## Legibility rules (non-negotiable)
 

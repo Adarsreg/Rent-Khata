@@ -3,69 +3,66 @@
 @tailwind utilities;
 
 /*
- * Brand color as RGB triplets, consumed by tailwind.config.js via
+ * Brand colour as RGB triplets, consumed by tailwind.config.js via
  * `rgb(var(--c-x) / <alpha-value>)`.
  *
  * MIRRORS src/theme/palette.js — that file is the source of truth. After
- * editing it, regenerate these values and run `npm run check:contrast`.
- *
- * NativeWind maps `prefers-color-scheme` onto the device color scheme, so a
- * single `bg-surface` resolves per-scheme with no `dark:` prefix anywhere.
+ * editing it, regenerate these values and run `npm test`.
  */
 @layer base {
   :root {
-    --c-canvas: 244 246 248;
+    --c-canvas: 240 242 245;
     --c-surface: 255 255 255;
-    --c-surface2: 240 242 245;
-    --c-surface3: 230 234 239;
-    --c-border: 220 225 231;
-    --c-border-strong: 185 194 204;
-    --c-text: 11 15 20;
-    --c-text-secondary: 74 85 96;
-    --c-text-tertiary: 92 102 111;
+    --c-surface2: 247 248 250;
+    --c-surface3: 233 237 239;
+    --c-border: 225 228 232;
+    --c-border-strong: 195 203 209;
+    --c-text: 17 27 33;
+    --c-text-secondary: 83 99 111;
+    --c-text-tertiary: 92 107 119;
     --c-text-inverse: 255 255 255;
-    --c-brand: 98 70 234;
-    --c-brand-hover: 78 54 201;
-    --c-brand-muted: 238 234 254;
-    --c-brand-text: 90 63 214;
+    --c-brand: 0 103 79;
+    --c-brand-hover: 0 84 63;
+    --c-brand-muted: 231 245 239;
+    --c-brand-text: 0 96 74;
     --c-on-brand: 255 255 255;
     --c-paid: 4 107 78;
-    --c-paid-muted: 222 247 236;
-    --c-due: 154 71 8;
-    --c-due-muted: 254 243 199;
-    --c-overdue: 185 28 28;
-    --c-overdue-muted: 254 226 226;
-    --c-neutral: 92 102 111;
+    --c-paid-muted: 217 253 211;
+    --c-due: 83 99 111;
+    --c-due-muted: 240 242 245;
+    --c-overdue: 168 38 27;
+    --c-overdue-muted: 253 234 231;
+    --c-neutral: 92 107 119;
     --c-neutral-muted: 240 242 245;
     --c-glass-solid: 255 255 255;
   }
 
   @media (prefers-color-scheme: dark) {
     :root {
-      --c-canvas: 11 15 20;
-      --c-surface: 20 26 33;
-      --c-surface2: 28 36 45;
-      --c-surface3: 37 48 57;
-      --c-border: 43 54 66;
-      --c-border-strong: 60 73 86;
-      --c-text: 242 245 247;
-      --c-text-secondary: 163 175 187;
-      --c-text-tertiary: 148 158 168;
-      --c-text-inverse: 11 15 20;
-      --c-brand: 121 89 248;
-      --c-brand-hover: 142 114 255;
-      --c-brand-muted: 36 30 77;
-      --c-brand-text: 155 130 255;
-      --c-on-brand: 255 255 255;
-      --c-paid: 52 211 153;
-      --c-paid-muted: 14 46 37;
-      --c-due: 251 191 36;
-      --c-due-muted: 51 39 10;
-      --c-overdue: 248 113 113;
-      --c-overdue-muted: 58 26 26;
-      --c-neutral: 148 158 168;
-      --c-neutral-muted: 26 33 40;
-      --c-glass-solid: 20 26 33;
+      --c-canvas: 11 20 26;
+      --c-surface: 17 27 33;
+      --c-surface2: 28 42 51;
+      --c-surface3: 36 53 63;
+      --c-border: 42 57 66;
+      --c-border-strong: 62 82 89;
+      --c-text: 233 237 239;
+      --c-text-secondary: 167 180 188;
+      --c-text-tertiary: 152 166 175;
+      --c-text-inverse: 11 20 26;
+      --c-brand: 0 168 132;
+      --c-brand-hover: 6 207 156;
+      --c-brand-muted: 28 42 51;
+      --c-brand-text: 83 189 172;
+      --c-on-brand: 11 20 26;
+      --c-paid: 91 201 143;
+      --c-paid-muted: 16 54 41;
+      --c-due: 167 180 188;
+      --c-due-muted: 28 42 51;
+      --c-overdue: 240 135 122;
+      --c-overdue-muted: 59 31 28;
+      --c-neutral: 152 166 175;
+      --c-neutral-muted: 24 36 43;
+      --c-glass-solid: 17 27 33;
     }
   }
 }

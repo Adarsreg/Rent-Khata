@@ -2,12 +2,12 @@
 // navigator now lives at this subpath.
 import { Tabs } from 'expo-router/js-tabs';
 
-import { FloatingTabBar } from '@/components/floating-tab-bar';
+import { TabBar } from '@/components/tab-bar';
 
 export default function AppTabsLayout() {
   return (
     <Tabs
-      tabBar={(props) => <FloatingTabBar {...props} />}
+      tabBar={(props) => <TabBar {...props} />}
       screenOptions={{
         headerShown: false,
         // The bar floats over content; each screen pads its own scroll view
